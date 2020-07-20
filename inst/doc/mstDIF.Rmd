@@ -1,0 +1,170 @@
+---
+title: "Testing for DIF with mstDIF"
+author: "Rudolf Debelak"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{mstDIF}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+### Introduction 
+mstDIF provides a collection of methods for the detection of differential item functioning (DIF) in multistage tests using an item response theory framework. It contains three types of methods. The first type is based on logistic regression, the second type is based on the mstSIB method, and the third type consists of a family of score-based DIF tests. In this brief tutorial, we illustrate the application of each method.
+
+### The first steps
+After the mstDIF package has been installed, we load it by the following command. 
+```{r}
+library(mstDIF)
+```
+
+
+To illustrate the functions of this package, we use an artificial dataset that is part of mstDIF. This dataset consists of 1000 respondents that responded to a multistage test. This test used a (1,2,2) design: All test takers first worked on a module of 7 items. Based on their estimated ability parameter after completing this module, they worked on a easier or a more difficult module next. After this second module, their ability parameter was estimated again and they were either an easy or a difficult module. We load this toy example using the following code:
+```{r}
+data("toydata")
+```
+This dataset is a list with seven elements. We will use six of them:
+```{r}
+resp <- toydata$resp
+group_categ <- toydata$group_categ
+group_cont <- toydata$group_cont
+it <- toydata$it
+theta_est <- toydata$theta_est
+see_est <- toydata$see_est
+```
+The matrix resp contains the response matrix, with 0 corresponding to incorrect and 1 corresponding to correct responses. Missing responses are denoted by NA. group_categ is a vector that indicates an artificial person covariate. 0 indicates that a respondent is a member of the reference group, and 1 that a respondent is a member of the focal group. group_cont is a continuous person covariate, which takes on integer values between 20 and 60; this variable aims at simulating an age variable. it contains a matrix with the item parameters, where the first column corresponds to the discrimination parameters and the second column to the difficulty parameters of the 35 items used in this test. theta_est and see_est are the estimated ability parameters and their standard errors for the individual test takers, respectively.
+
+We want to check whether the item parameters are stable between the focal and reference groups. We use the various methods of mstDIF for this purpose. We are now ready to apply our first method in the next section.
+
+### The logistic regression DIF test
+Using the results from the previous section, we are now able to apply the logistic regression DIF test. We do this by the following command, where we also transform group_categ into a categorical variable. The command uses three arguments: resp is a data frame which contains the response matrix (where rows correspond to respondents and columns to items), DIF_covariate is a factor which determines the membership to the focal and reference groups, and theta is a vector of ability parameter estimates for the respondents.
+```{r}
+log_reg_DIF <- mstDIF(resp, DIF_covariate = factor(group_categ), method = "logreg",
+                theta = theta_est)
+```
+This results in an `mstDIF`-object. Printing the object gives us information about the test and the data.
+
+```{r}
+log_reg_DIF
+```
+
+Using the `summary`-method returns a data frame with item-wise test information. In the logistic regression method, three tests are computed per item. A test to detect uniform DIF, a test to detect non-uniform DIF and a global test that is sensitive to both uniform and non-uniform DIF. By default only the results of the global tests are returned. Using the `DIF_type`-argument one of more tests can be selected per item. Check `?"mstDIF-Methods"` for more information.
+
+For instance, when we want the information form all the tests, we can use:
+
+```{r}
+summary(log_reg_DIF, DIF_type = "all")
+```
+This output can be read as follows: Each rows corresponds to an item, and each column to information on this item. Items with a lower p-value are presented first. Focusing on the global DIF tests, the following information is given:
+
+* `overall_stat` the test statistic
+* `overall_p_value` the $p$-value
+* `overall_eff_size` the effect size (Nagelkerke's R squared)
+* `N` The number of respondents answering this item.
+
+Note that most DIF tests only contain a global test per item, and effect sizes are only available for the logistic regression method in the current version of mstDIF.
+
+By inspecting the p-values in the second column, we see that there is an indication for an overall DIF effect in three items, which are labeled as Item_8, Item_33 and Item_30. In these three items, the p-values are below 0.05. However, the effect sizes are very small. An inspection of the columns uniform_p_value and non-uniform_p_value would indicate that the DIF effect of items 8 and 33 is overall uniform, while it is rather non-uniform for item 30. However, given the large size of the item set, these effects could also be random fluctuations in the sample and therefore false positive. We could either a) correct for multiple testing or b) form hypotheses which items we would like to test for DIF.
+ 
+### The mstSIB test
+We carry out the second DIF test, which is the mstSIB procedure. The respective command requires four arguments. The first argument is the response matrix resp, the second argument DIF_covariate is a factor that indicates the membership to the focal and reference group, and the final two arguments are theta and see. Whereas theta contains estimates of the ability parameters, see contains the standard errors of the ability parameters. We run the second DIF test by running:
+```{r}
+mstSIB_DIF <- mstDIF(resp, DIF_covariate = factor(group_categ), method = "mstsib",
+                theta = theta_est, see = see_est)
+mstSIB_DIF
+```
+As in the first test, printing the test given detailed information on the test and the underlying data set. By applying summary, we get the individual p-values:
+```{r}
+summary(mstSIB_DIF)
+```
+
+We see that the p-values of 9 items (5, 7, 8, 11, 14, 21, 25, 32 and 33) are below 0.05, indicating a DIF effect for these items. N again indicates the number of respondents responding to the respective item. As can be seen, the DIF tests of mstSIB and logistic regression do not always agree in their results. We move on to the third DIF test, which is a score-based DIF test.
+
+### The Score-Based DIF test
+The third test is an analytical score-based DIF. This test uses the mstDIF command and can be applied to dRm objects which are generated by the RM command of eRm as well as SingleGroupObjects and MultiGroupObjects that can be generated with the mirt package. In its simplest version, it requires three arguments. The first argument is object, which is the object obtained from eRm or mirt. The second is DIF_covariate, which is again used as a person covariate that is used to test for DIF. In contrast to the logistic regression test and mstSIB, this argument can also be a metric variable. Finally, setting the third argument, method, to "analytical", determines that an analytical test is used.  To apply this test, we first estimate a 2PL model with the mirt package:
+```{r}
+library(mirt)
+mirt_model <- mirt(as.data.frame(resp), model = 1, verbose = FALSE)
+```
+We now apply the analytical score-based DIF test:
+```{r}
+sc_DIF <- mstDIF(mirt_model, DIF_covariate = factor(group_categ), method = "analytical")
+sc_DIF
+```
+
+As with the other tests, printing the object returns information on the test and the underlying dataset. Since we applied the test to a mirt object, the Data are given as NULL. The test statistic depends on the type of covariate that is used in the DIF test. In the case of a discrete, unordered person covariate, the used test statistic leads to a Lagrange Multiplier test for unordered groups. As with the other tests, we get p-values via the summary command: 
+```{r}
+summary(sc_DIF)
+```
+Similar to the logistic regression test, we obtain p-values below 0.05 for the five items 5, 8, 30, 32 and 33. To prevent an increased rate of false positive results, we could again a) correct for multiple testing or b) define hypotheses which items we want to test for DIF before we carry out the tests. From a technical perspective, these analytical DIF tests assume that all other items are DIF free. It is possible to explicitly define a set of anchor item to weaken this assumption, but this goes beyond the scope of this vignette. 
+
+In contrast to the logistic regression and mstSIB DIF test, score-based tests also allow to test continuous and ordinal person covariates for DIF effects. We will demonstrate this feature with the group_cont covariate:
+```{r}
+sc_DIF_2 <- mstDIF(mirt_model, DIF_covariate = group_cont, method = "analytical")
+sc_DIF_2
+```
+As usual, we can investigate the results for the individual items with:
+```{r}
+summary(sc_DIF_2)
+```
+As can be seen, there are no significant DIF effects.
+
+### Permutation and Bootstrap DIF tests
+Finally, we apply permutation and bootstrap DIF tests. In contrast to the other DIF tests presented in this vignette, these tests make use of the item parameters used during the presentation of the adaptive tests. Technically, these tests aim at testing the hypothesis that the true item parameters are invariant and correspond to the values used in the presentation of the adaptive test. These item parameters are stored in the it matrix. We start our application of these tests by explicitly storing the discrimination and difficulty parameters in separate vectors:
+```{r}
+discr <- it[,1]
+diff <- it[,2]
+```
+We can now apply the bootstrap DIF test by the following command:
+```{r}
+bootstrap_DIF <- mstDIF(resp = resp, DIF_covariate = group_categ, method = "bootstrap",
+                a = discr, b = diff, decorrelate = F)
+```
+After starting this command, the person parameters are calculated again using the PP package. We get notified that the estimation was finished. Printing the resulting object again gives details on the underlying data and test:
+```{r}
+bootstrap_DIF
+```
+Using the summary command, we get the p-values:
+```{r}
+summary(bootstrap_DIF)
+```
+We see that items 8, 30, 32 and 33 show p-values below 0.0, similar to the analytical score-based test. As with the other tests, we could either correct for multiple testing or define hypotheses beforehand to prevent an increased rate of false positive results. As was the case with the analytical score-based tests, we can also test continuous and ordinal person covariates for DIF. We demonstrate this type of analysis with the group_cont covariate:
+```{r}
+bootstrap_DIF_2 <- mstDIF(resp = resp, DIF_covariate = group_cont, method = "bootstrap",
+                a = discr, b = diff, decorrelate = F)
+bootstrap_DIF_2
+```
+The results of this analysis are:
+```{r}
+summary(bootstrap_DIF_2)
+```
+We find significant DIF effects for items 5 and 18.
+
+The permutation based DIF test works analogously. We therefore just demonstrate the commands and their output:
+```{r}
+permutation_DIF <- mstDIF(resp = resp, DIF_covariate = group_categ, method = "permutation",
+                a = discr, b = diff, decorrelate = F)
+permutation_DIF_2 <- mstDIF(resp = resp, DIF_covariate = group_cont, method = "permutation",
+                a = discr, b = diff, decorrelate = F)
+```
+
+The results for the categorical covariate are:
+```{r}
+summary(permutation_DIF)
+```
+The results for the continuous covariate are:
+```{r}
+summary(permutation_DIF_2)
+```
+The results are very similar to those of the bootstrap DIF test.
+
+
+### Conclusion
+In this vignette, we illustrated the use of the various tests included in the mstDIF package. The available tests include logistic regression, the mstSIB test, analytical score-based tests, bootstrap score-based tests and permutation score-based tests. For the three types of score-based tests, we further demonstrated their application to test a continuous covariate for DIF.

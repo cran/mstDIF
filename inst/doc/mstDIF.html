@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Rudolf Debelak" />
+
+<meta name="date" content="2020-07-15" />
+
+<title>Testing for DIF with mstDIF</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Testing for DIF with mstDIF</h1>
+<h4 class="author">Rudolf Debelak</h4>
+<h4 class="date">2020-07-15</h4>
+
+
+
+<div id="introduction" class="section level3">
+<h3>Introduction</h3>
+<p>mstDIF provides a collection of methods for the detection of differential item functioning (DIF) in multistage tests using an item response theory framework. It contains three types of methods. The first type is based on logistic regression, the second type is based on the mstSIB method, and the third type consists of a family of score-based DIF tests. In this brief tutorial, we illustrate the application of each method.</p>
+</div>
+<div id="the-first-steps" class="section level3">
+<h3>The first steps</h3>
+<p>After the mstDIF package has been installed, we load it by the following command.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a><span class="kw">library</span>(mstDIF)</span></code></pre></div>
+<p>To illustrate the functions of this package, we use an artificial dataset that is part of mstDIF. This dataset consists of 1000 respondents that responded to a multistage test. This test used a (1,2,2) design: All test takers first worked on a module of 7 items. Based on their estimated ability parameter after completing this module, they worked on a easier or a more difficult module next. After this second module, their ability parameter was estimated again and they were either an easy or a difficult module. We load this toy example using the following code:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;toydata&quot;</span>)</span></code></pre></div>
+<p>This dataset is a list with seven elements. We will use six of them:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a>resp &lt;-<span class="st"> </span>toydata<span class="op">$</span>resp</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a>group_categ &lt;-<span class="st"> </span>toydata<span class="op">$</span>group_categ</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a>group_cont &lt;-<span class="st"> </span>toydata<span class="op">$</span>group_cont</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a>it &lt;-<span class="st"> </span>toydata<span class="op">$</span>it</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a>theta_est &lt;-<span class="st"> </span>toydata<span class="op">$</span>theta_est</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true"></a>see_est &lt;-<span class="st"> </span>toydata<span class="op">$</span>see_est</span></code></pre></div>
+<p>The matrix resp contains the response matrix, with 0 corresponding to incorrect and 1 corresponding to correct responses. Missing responses are denoted by NA. group_categ is a vector that indicates an artificial person covariate. 0 indicates that a respondent is a member of the reference group, and 1 that a respondent is a member of the focal group. group_cont is a continuous person covariate, which takes on integer values between 20 and 60; this variable aims at simulating an age variable. it contains a matrix with the item parameters, where the first column corresponds to the discrimination parameters and the second column to the difficulty parameters of the 35 items used in this test. theta_est and see_est are the estimated ability parameters and their standard errors for the individual test takers, respectively.</p>
+<p>We want to check whether the item parameters are stable between the focal and reference groups. We use the various methods of mstDIF for this purpose. We are now ready to apply our first method in the next section.</p>
+</div>
+<div id="the-logistic-regression-dif-test" class="section level3">
+<h3>The logistic regression DIF test</h3>
+<p>Using the results from the previous section, we are now able to apply the logistic regression DIF test. We do this by the following command, where we also transform group_categ into a categorical variable. The command uses three arguments: resp is a data frame which contains the response matrix (where rows correspond to respondents and columns to items), DIF_covariate is a factor which determines the membership to the focal and reference groups, and theta is a vector of ability parameter estimates for the respondents.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a>log_reg_DIF &lt;-<span class="st"> </span><span class="kw">mstDIF</span>(resp, <span class="dt">DIF_covariate =</span> <span class="kw">factor</span>(group_categ), <span class="dt">method =</span> <span class="st">&quot;logreg&quot;</span>,</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true"></a>                <span class="dt">theta =</span> theta_est)</span></code></pre></div>
+<p>This results in an <code>mstDIF</code>-object. Printing the object gives us information about the test and the data.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a>log_reg_DIF</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a><span class="co">#&gt;     Differential Item Functioning (DIF) Detection Test </span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true"></a><span class="co">#&gt;      Method:      DIF-test using Logistic Regression </span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true"></a><span class="co">#&gt;      Test:        Likelihood Ratio Test </span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true"></a><span class="co">#&gt;      DIF covariate:   factor(group_categ) </span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true"></a><span class="co">#&gt;      Data:        resp </span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true"></a><span class="co">#&gt;      Items:       35 </span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true"></a><span class="co">#&gt;      Persons:     1000</span></span></code></pre></div>
+<p>Using the <code>summary</code>-method returns a data frame with item-wise test information. In the logistic regression method, three tests are computed per item. A test to detect uniform DIF, a test to detect non-uniform DIF and a global test that is sensitive to both uniform and non-uniform DIF. By default only the results of the global tests are returned. Using the <code>DIF_type</code>-argument one of more tests can be selected per item. Check <code>?&quot;mstDIF-Methods&quot;</code> for more information.</p>
+<p>For instance, when we want the information form all the tests, we can use:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a><span class="kw">summary</span>(log_reg_DIF, <span class="dt">DIF_type =</span> <span class="st">&quot;all&quot;</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true"></a><span class="co">#&gt;         overall_stat overall_p_value overall_eff_size uniform_stat</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true"></a><span class="co">#&gt; Item_8   12.16875795     0.002278179     0.0241827373 1.161337e+01</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true"></a><span class="co">#&gt; Item_33   9.72315310     0.007738274     0.0237115902 8.855648e+00</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true"></a><span class="co">#&gt; Item_30   9.53189957     0.008514797     0.0229798361 3.440068e-01</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true"></a><span class="co">#&gt; Item_32   6.80924287     0.033219393     0.0223673719 6.267057e+00</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true"></a><span class="co">#&gt; Item_5    6.67415852     0.035540611     0.0067044801 6.452145e+00</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true"></a><span class="co">#&gt; Item_25   6.37952893     0.041181570     0.0144723882 4.259595e+00</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true"></a><span class="co">#&gt; Item_7    5.71821721     0.057319832     0.0073594481 1.978559e+00</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true"></a><span class="co">#&gt; Item_21   5.66930097     0.058739052     0.0160079717 5.200306e+00</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true"></a><span class="co">#&gt; Item_24   4.99009162     0.082492672     0.0114843336 4.380913e+00</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true"></a><span class="co">#&gt; Item_3    3.18153017     0.203769651     0.0035582868 3.165964e+00</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true"></a><span class="co">#&gt; Item_28   2.99557723     0.223624133     0.0069983109 2.809478e+00</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true"></a><span class="co">#&gt; Item_1    2.83699541     0.242077416     0.0028920528 7.697821e-01</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true"></a><span class="co">#&gt; Item_16   2.81621943     0.244605220     0.0072479034 1.498498e-01</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true"></a><span class="co">#&gt; Item_27   1.88748532     0.389168581     0.0041230220 1.642642e+00</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true"></a><span class="co">#&gt; Item_14   1.77810651     0.411044723     0.0038642187 5.441687e-01</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true"></a><span class="co">#&gt; Item_23   1.48314314     0.476364686     0.0030051788 4.000434e-01</span></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true"></a><span class="co">#&gt; Item_15   1.39785298     0.497118680     0.0034687560 9.509201e-01</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true"></a><span class="co">#&gt; Item_19   1.37728431     0.502257593     0.0036391944 3.203909e-01</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true"></a><span class="co">#&gt; Item_22   1.19139830     0.551177077     0.0025834418 9.250174e-01</span></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true"></a><span class="co">#&gt; Item_10   1.09360706     0.578796963     0.0024268684 1.073037e+00</span></span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true"></a><span class="co">#&gt; Item_6    1.04667169     0.592540624     0.0011398236 1.031821e+00</span></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true"></a><span class="co">#&gt; Item_13   0.73290590     0.693188750     0.0016357837 9.430860e-02</span></span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true"></a><span class="co">#&gt; Item_12   0.65517407     0.720660564     0.0011895057 3.424121e-03</span></span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true"></a><span class="co">#&gt; Item_4    0.62353169     0.732152944     0.0008186510 4.791145e-01</span></span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true"></a><span class="co">#&gt; Item_17   0.56848892     0.752582647     0.0015896194 4.729859e-01</span></span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true"></a><span class="co">#&gt; Item_2    0.56122811     0.755319792     0.0005672282 5.556867e-01</span></span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true"></a><span class="co">#&gt; Item_29   0.55470127     0.757788745     0.0013967037 5.448385e-01</span></span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true"></a><span class="co">#&gt; Item_9    0.44689166     0.799758214     0.0008250358 2.355315e-01</span></span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true"></a><span class="co">#&gt; Item_26   0.29721920     0.861905536     0.0005740969 1.966462e-01</span></span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true"></a><span class="co">#&gt; Item_35   0.29198078     0.864166007     0.0007965819 2.910217e-01</span></span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true"></a><span class="co">#&gt; Item_11   0.26293458     0.876807955     0.0005536073 2.136855e-01</span></span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true"></a><span class="co">#&gt; Item_31   0.15422487     0.925785757     0.0004047319 1.487255e-01</span></span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true"></a><span class="co">#&gt; Item_18   0.12917702     0.937453137     0.0005307723 7.395971e-02</span></span>
+<span id="cb6-36"><a href="#cb6-36" aria-hidden="true"></a><span class="co">#&gt; Item_20   0.09413638     0.954022340     0.0002471444 9.981562e-04</span></span>
+<span id="cb6-37"><a href="#cb6-37" aria-hidden="true"></a><span class="co">#&gt; Item_34   0.04655953     0.976989117     0.0001236534 2.952516e-02</span></span>
+<span id="cb6-38"><a href="#cb6-38" aria-hidden="true"></a><span class="co">#&gt;         uniform_p_value uniform_eff_size non-uniform_stat non-uniform_p_value</span></span>
+<span id="cb6-39"><a href="#cb6-39" aria-hidden="true"></a><span class="co">#&gt; Item_8     0.0006547933     2.309012e-02      0.555386043         0.456125273</span></span>
+<span id="cb6-40"><a href="#cb6-40" aria-hidden="true"></a><span class="co">#&gt; Item_33    0.0029218344     2.161678e-02      0.867505551         0.351646804</span></span>
+<span id="cb6-41"><a href="#cb6-41" aria-hidden="true"></a><span class="co">#&gt; Item_30    0.5575254755     8.378380e-04      9.187892728         0.002436212</span></span>
+<span id="cb6-42"><a href="#cb6-42" aria-hidden="true"></a><span class="co">#&gt; Item_32    0.0123003302     2.059874e-02      0.542186170         0.461528116</span></span>
+<span id="cb6-43"><a href="#cb6-43" aria-hidden="true"></a><span class="co">#&gt; Item_5     0.0110818446     6.482177e-03      0.222013133         0.637510275</span></span>
+<span id="cb6-44"><a href="#cb6-44" aria-hidden="true"></a><span class="co">#&gt; Item_25    0.0390292238     9.681787e-03      2.119933861         0.145392823</span></span>
+<span id="cb6-45"><a href="#cb6-45" aria-hidden="true"></a><span class="co">#&gt; Item_7     0.1595423285     2.551203e-03      3.739658523         0.053135303</span></span>
+<span id="cb6-46"><a href="#cb6-46" aria-hidden="true"></a><span class="co">#&gt; Item_21    0.0225829096     1.469181e-02      0.468994760         0.493449990</span></span>
+<span id="cb6-47"><a href="#cb6-47" aria-hidden="true"></a><span class="co">#&gt; Item_24    0.0363435304     1.008793e-02      0.609178867         0.435097149</span></span>
+<span id="cb6-48"><a href="#cb6-48" aria-hidden="true"></a><span class="co">#&gt; Item_3     0.0751880488     3.540905e-03      0.015566464         0.900709092</span></span>
+<span id="cb6-49"><a href="#cb6-49" aria-hidden="true"></a><span class="co">#&gt; Item_28    0.0937088854     6.564652e-03      0.186099614         0.666182897</span></span>
+<span id="cb6-50"><a href="#cb6-50" aria-hidden="true"></a><span class="co">#&gt; Item_1     0.3802844848     7.855324e-04      2.067213356         0.150496286</span></span>
+<span id="cb6-51"><a href="#cb6-51" aria-hidden="true"></a><span class="co">#&gt; Item_16    0.6986789051     3.868717e-04      2.666369601         0.102489567</span></span>
+<span id="cb6-52"><a href="#cb6-52" aria-hidden="true"></a><span class="co">#&gt; Item_27    0.1999634020     3.588984e-03      0.244843623         0.620729475</span></span>
+<span id="cb6-53"><a href="#cb6-53" aria-hidden="true"></a><span class="co">#&gt; Item_14    0.4607102056     1.183866e-03      1.233937830         0.266642588</span></span>
+<span id="cb6-54"><a href="#cb6-54" aria-hidden="true"></a><span class="co">#&gt; Item_23    0.5270668604     8.113754e-04      1.083099774         0.298005149</span></span>
+<span id="cb6-55"><a href="#cb6-55" aria-hidden="true"></a><span class="co">#&gt; Item_15    0.3294852126     2.360941e-03      0.446932911         0.503795076</span></span>
+<span id="cb6-56"><a href="#cb6-56" aria-hidden="true"></a><span class="co">#&gt; Item_19    0.5713727937     8.476235e-04      1.056893364         0.303924808</span></span>
+<span id="cb6-57"><a href="#cb6-57" aria-hidden="true"></a><span class="co">#&gt; Item_22    0.3361610042     2.006304e-03      0.266380887         0.605769901</span></span>
+<span id="cb6-58"><a href="#cb6-58" aria-hidden="true"></a><span class="co">#&gt; Item_10    0.3002604570     2.381263e-03      0.020570025         0.885956482</span></span>
+<span id="cb6-59"><a href="#cb6-59" aria-hidden="true"></a><span class="co">#&gt; Item_6     0.3097314014     1.123659e-03      0.014850906         0.903006496</span></span>
+<span id="cb6-60"><a href="#cb6-60" aria-hidden="true"></a><span class="co">#&gt; Item_13    0.7587695051     2.106055e-04      0.638597303         0.424219191</span></span>
+<span id="cb6-61"><a href="#cb6-61" aria-hidden="true"></a><span class="co">#&gt; Item_12    0.9533376271     6.220204e-06      0.651749953         0.419487720</span></span>
+<span id="cb6-62"><a href="#cb6-62" aria-hidden="true"></a><span class="co">#&gt; Item_4     0.4888236954     6.290873e-04      0.144417214         0.703928602</span></span>
+<span id="cb6-63"><a href="#cb6-63" aria-hidden="true"></a><span class="co">#&gt; Item_17    0.4916167151     1.322721e-03      0.095503024         0.757294420</span></span>
+<span id="cb6-64"><a href="#cb6-64" aria-hidden="true"></a><span class="co">#&gt; Item_2     0.4560033932     5.616290e-04      0.005541451         0.940659546</span></span>
+<span id="cb6-65"><a href="#cb6-65" aria-hidden="true"></a><span class="co">#&gt; Item_29    0.4604343634     1.371885e-03      0.009862717         0.920891175</span></span>
+<span id="cb6-66"><a href="#cb6-66" aria-hidden="true"></a><span class="co">#&gt; Item_9     0.6274522746     4.349099e-04      0.211360132         0.645703429</span></span>
+<span id="cb6-67"><a href="#cb6-67" aria-hidden="true"></a><span class="co">#&gt; Item_26    0.6574416815     3.798687e-04      0.100573023         0.751143065</span></span>
+<span id="cb6-68"><a href="#cb6-68" aria-hidden="true"></a><span class="co">#&gt; Item_35    0.5895665701     7.939661e-04      0.000959122         0.975293708</span></span>
+<span id="cb6-69"><a href="#cb6-69" aria-hidden="true"></a><span class="co">#&gt; Item_11    0.6438939599     4.499329e-04      0.049249086         0.824375110</span></span>
+<span id="cb6-70"><a href="#cb6-70" aria-hidden="true"></a><span class="co">#&gt; Item_31    0.6997563210     3.903023e-04      0.005499388         0.940884776</span></span>
+<span id="cb6-71"><a href="#cb6-71" aria-hidden="true"></a><span class="co">#&gt; Item_18    0.7856563491     3.039111e-04      0.055217304         0.814221442</span></span>
+<span id="cb6-72"><a href="#cb6-72" aria-hidden="true"></a><span class="co">#&gt; Item_20    0.9747961394     2.620834e-06      0.093138224         0.760224832</span></span>
+<span id="cb6-73"><a href="#cb6-73" aria-hidden="true"></a><span class="co">#&gt; Item_34    0.8635720757     7.841480e-05      0.017034374         0.896158354</span></span>
+<span id="cb6-74"><a href="#cb6-74" aria-hidden="true"></a><span class="co">#&gt;         non-uniform_eff_size    N</span></span>
+<span id="cb6-75"><a href="#cb6-75" aria-hidden="true"></a><span class="co">#&gt; Item_8          1.092617e-03  576</span></span>
+<span id="cb6-76"><a href="#cb6-76" aria-hidden="true"></a><span class="co">#&gt; Item_33         2.094808e-03  450</span></span>
+<span id="cb6-77"><a href="#cb6-77" aria-hidden="true"></a><span class="co">#&gt; Item_30         2.214200e-02  450</span></span>
+<span id="cb6-78"><a href="#cb6-78" aria-hidden="true"></a><span class="co">#&gt; Item_32         1.768627e-03  450</span></span>
+<span id="cb6-79"><a href="#cb6-79" aria-hidden="true"></a><span class="co">#&gt; Item_5          2.223030e-04 1000</span></span>
+<span id="cb6-80"><a href="#cb6-80" aria-hidden="true"></a><span class="co">#&gt; Item_25         4.790601e-03  550</span></span>
+<span id="cb6-81"><a href="#cb6-81" aria-hidden="true"></a><span class="co">#&gt; Item_7          4.808245e-03 1000</span></span>
+<span id="cb6-82"><a href="#cb6-82" aria-hidden="true"></a><span class="co">#&gt; Item_21         1.316159e-03  424</span></span>
+<span id="cb6-83"><a href="#cb6-83" aria-hidden="true"></a><span class="co">#&gt; Item_24         1.396404e-03  550</span></span>
+<span id="cb6-84"><a href="#cb6-84" aria-hidden="true"></a><span class="co">#&gt; Item_3          1.738230e-05 1000</span></span>
+<span id="cb6-85"><a href="#cb6-85" aria-hidden="true"></a><span class="co">#&gt; Item_28         4.336591e-04  550</span></span>
+<span id="cb6-86"><a href="#cb6-86" aria-hidden="true"></a><span class="co">#&gt; Item_1          2.106520e-03 1000</span></span>
+<span id="cb6-87"><a href="#cb6-87" aria-hidden="true"></a><span class="co">#&gt; Item_16         6.861032e-03  424</span></span>
+<span id="cb6-88"><a href="#cb6-88" aria-hidden="true"></a><span class="co">#&gt; Item_27         5.340379e-04  550</span></span>
+<span id="cb6-89"><a href="#cb6-89" aria-hidden="true"></a><span class="co">#&gt; Item_14         2.680353e-03  576</span></span>
+<span id="cb6-90"><a href="#cb6-90" aria-hidden="true"></a><span class="co">#&gt; Item_23         2.193803e-03  550</span></span>
+<span id="cb6-91"><a href="#cb6-91" aria-hidden="true"></a><span class="co">#&gt; Item_15         1.107815e-03  424</span></span>
+<span id="cb6-92"><a href="#cb6-92" aria-hidden="true"></a><span class="co">#&gt; Item_19         2.791571e-03  424</span></span>
+<span id="cb6-93"><a href="#cb6-93" aria-hidden="true"></a><span class="co">#&gt; Item_22         5.771377e-04  550</span></span>
+<span id="cb6-94"><a href="#cb6-94" aria-hidden="true"></a><span class="co">#&gt; Item_10         4.560528e-05  576</span></span>
+<span id="cb6-95"><a href="#cb6-95" aria-hidden="true"></a><span class="co">#&gt; Item_6          1.616427e-05 1000</span></span>
+<span id="cb6-96"><a href="#cb6-96" aria-hidden="true"></a><span class="co">#&gt; Item_13         1.425178e-03  576</span></span>
+<span id="cb6-97"><a href="#cb6-97" aria-hidden="true"></a><span class="co">#&gt; Item_12         1.183285e-03  576</span></span>
+<span id="cb6-98"><a href="#cb6-98" aria-hidden="true"></a><span class="co">#&gt; Item_4          1.895637e-04 1000</span></span>
+<span id="cb6-99"><a href="#cb6-99" aria-hidden="true"></a><span class="co">#&gt; Item_17         2.668984e-04  424</span></span>
+<span id="cb6-100"><a href="#cb6-100" aria-hidden="true"></a><span class="co">#&gt; Item_2          5.599138e-06 1000</span></span>
+<span id="cb6-101"><a href="#cb6-101" aria-hidden="true"></a><span class="co">#&gt; Item_29         2.481869e-05  450</span></span>
+<span id="cb6-102"><a href="#cb6-102" aria-hidden="true"></a><span class="co">#&gt; Item_9          3.901259e-04  576</span></span>
+<span id="cb6-103"><a href="#cb6-103" aria-hidden="true"></a><span class="co">#&gt; Item_26         1.942282e-04  550</span></span>
+<span id="cb6-104"><a href="#cb6-104" aria-hidden="true"></a><span class="co">#&gt; Item_35         2.615830e-06  450</span></span>
+<span id="cb6-105"><a href="#cb6-105" aria-hidden="true"></a><span class="co">#&gt; Item_11         1.036744e-04  576</span></span>
+<span id="cb6-106"><a href="#cb6-106" aria-hidden="true"></a><span class="co">#&gt; Item_31         1.442965e-05  450</span></span>
+<span id="cb6-107"><a href="#cb6-107" aria-hidden="true"></a><span class="co">#&gt; Item_18         2.268612e-04  424</span></span>
+<span id="cb6-108"><a href="#cb6-108" aria-hidden="true"></a><span class="co">#&gt; Item_20         2.445235e-04  424</span></span>
+<span id="cb6-109"><a href="#cb6-109" aria-hidden="true"></a><span class="co">#&gt; Item_34         4.523864e-05  450</span></span></code></pre></div>
+<p>This output can be read as follows: Each rows corresponds to an item, and each column to information on this item. Items with a lower p-value are presented first. Focusing on the global DIF tests, the following information is given:</p>
+<ul>
+<li><code>overall_stat</code> the test statistic</li>
+<li><code>overall_p_value</code> the <span class="math inline">\(p\)</span>-value</li>
+<li><code>overall_eff_size</code> the effect size (Nagelkerke’s R squared)</li>
+<li><code>N</code> The number of respondents answering this item.</li>
+</ul>
+<p>Note that most DIF tests only contain a global test per item, and effect sizes are only available for the logistic regression method in the current version of mstDIF.</p>
+<p>By inspecting the p-values in the second column, we see that there is an indication for an overall DIF effect in three items, which are labeled as Item_8, Item_33 and Item_30. In these three items, the p-values are below 0.05. However, the effect sizes are very small. An inspection of the columns uniform_p_value and non-uniform_p_value would indicate that the DIF effect of items 8 and 33 is overall uniform, while it is rather non-uniform for item 30. However, given the large size of the item set, these effects could also be random fluctuations in the sample and therefore false positive. We could either a) correct for multiple testing or b) form hypotheses which items we would like to test for DIF.</p>
+</div>
+<div id="the-mstsib-test" class="section level3">
+<h3>The mstSIB test</h3>
+<p>We carry out the second DIF test, which is the mstSIB procedure. The respective command requires four arguments. The first argument is the response matrix resp, the second argument DIF_covariate is a factor that indicates the membership to the focal and reference group, and the final two arguments are theta and see. Whereas theta contains estimates of the ability parameters, see contains the standard errors of the ability parameters. We run the second DIF test by running:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true"></a>mstSIB_DIF &lt;-<span class="st"> </span><span class="kw">mstDIF</span>(resp, <span class="dt">DIF_covariate =</span> <span class="kw">factor</span>(group_categ), <span class="dt">method =</span> <span class="st">&quot;mstsib&quot;</span>,</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true"></a>                <span class="dt">theta =</span> theta_est, <span class="dt">see =</span> see_est)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true"></a>mstSIB_DIF</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true"></a><span class="co">#&gt;     Differential Item Functioning (DIF) Detection Test </span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true"></a><span class="co">#&gt;      Method:      SIB test for DIF in MST </span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true"></a><span class="co">#&gt;      Test:        SIB-test </span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true"></a><span class="co">#&gt;      DIF covariate:   factor(group_categ) </span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true"></a><span class="co">#&gt;      Data:        resp </span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true"></a><span class="co">#&gt;      Items:       35 </span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true"></a><span class="co">#&gt;      Persons:     1000</span></span></code></pre></div>
+<p>As in the first test, printing the test given detailed information on the test and the underlying data set. By applying summary, we get the individual p-values:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true"></a><span class="kw">summary</span>(mstSIB_DIF)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true"></a><span class="co">#&gt;                 stat      p_value    N</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true"></a><span class="co">#&gt; Item_32  0.053326967 2.024588e-36  450</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true"></a><span class="co">#&gt; Item_25 -0.104163154 1.151095e-14  550</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true"></a><span class="co">#&gt; Item_5  -0.068129925 3.448207e-07 1000</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true"></a><span class="co">#&gt; Item_33 -0.122530904 3.505046e-05  450</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true"></a><span class="co">#&gt; Item_21 -0.097249381 1.557694e-04  424</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true"></a><span class="co">#&gt; Item_7   0.042461528 1.786444e-04 1000</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true"></a><span class="co">#&gt; Item_8   0.129955506 1.461819e-02  576</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true"></a><span class="co">#&gt; Item_14 -0.046968712 2.163451e-02  576</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true"></a><span class="co">#&gt; Item_11 -0.016487268 3.537402e-02  576</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true"></a><span class="co">#&gt; Item_4  -0.004426816 9.884723e-02 1000</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true"></a><span class="co">#&gt; Item_3   0.047124831 1.076104e-01 1000</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true"></a><span class="co">#&gt; Item_2  -0.021864399 1.478652e-01 1000</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true"></a><span class="co">#&gt; Item_28  0.055640837 1.706851e-01  550</span></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true"></a><span class="co">#&gt; Item_19  0.028802851 1.750301e-01  424</span></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true"></a><span class="co">#&gt; Item_18 -0.002701141 1.930745e-01  424</span></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true"></a><span class="co">#&gt; Item_6   0.033373013 2.163196e-01 1000</span></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true"></a><span class="co">#&gt; Item_15  0.061048096 3.200998e-01  424</span></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true"></a><span class="co">#&gt; Item_30  0.041791752 3.604481e-01  450</span></span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true"></a><span class="co">#&gt; Item_1   0.021816674 3.815204e-01 1000</span></span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true"></a><span class="co">#&gt; Item_26 -0.041927073 4.175809e-01  550</span></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true"></a><span class="co">#&gt; Item_24 -0.072836077 4.431133e-01  550</span></span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true"></a><span class="co">#&gt; Item_35 -0.028356221 4.709391e-01  450</span></span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true"></a><span class="co">#&gt; Item_16 -0.018072989 4.999245e-01  424</span></span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true"></a><span class="co">#&gt; Item_9  -0.017760091 6.030239e-01  576</span></span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true"></a><span class="co">#&gt; Item_12 -0.015659338 6.079199e-01  576</span></span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true"></a><span class="co">#&gt; Item_10 -0.025964475 6.327634e-01  576</span></span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true"></a><span class="co">#&gt; Item_27  0.042820257 6.487289e-01  550</span></span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true"></a><span class="co">#&gt; Item_31  0.034512576 6.993907e-01  450</span></span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true"></a><span class="co">#&gt; Item_22  0.034949483 7.053106e-01  550</span></span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true"></a><span class="co">#&gt; Item_29 -0.019122147 8.394662e-01  450</span></span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true"></a><span class="co">#&gt; Item_13  0.010666372 8.423829e-01  576</span></span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true"></a><span class="co">#&gt; Item_20  0.006413806 8.977554e-01  424</span></span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true"></a><span class="co">#&gt; Item_17 -0.006816036 9.120287e-01  424</span></span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true"></a><span class="co">#&gt; Item_23  0.006519237 9.143417e-01  550</span></span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true"></a><span class="co">#&gt; Item_34  0.003871662 9.626978e-01  450</span></span></code></pre></div>
+<p>We see that the p-values of 9 items (5, 7, 8, 11, 14, 21, 25, 32 and 33) are below 0.05, indicating a DIF effect for these items. N again indicates the number of respondents responding to the respective item. As can be seen, the DIF tests of mstSIB and logistic regression do not always agree in their results. We move on to the third DIF test, which is a score-based DIF test.</p>
+</div>
+<div id="the-score-based-dif-test" class="section level3">
+<h3>The Score-Based DIF test</h3>
+<p>The third test is an analytical score-based DIF. This test uses the mstDIF command and can be applied to dRm objects which are generated by the RM command of eRm as well as SingleGroupObjects and MultiGroupObjects that can be generated with the mirt package. In its simplest version, it requires three arguments. The first argument is object, which is the object obtained from eRm or mirt. The second is DIF_covariate, which is again used as a person covariate that is used to test for DIF. In contrast to the logistic regression test and mstSIB, this argument can also be a metric variable. Finally, setting the third argument, method, to “analytical”, determines that an analytical test is used. To apply this test, we first estimate a 2PL model with the mirt package:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true"></a><span class="kw">library</span>(mirt)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true"></a><span class="co">#&gt; Loading required package: stats4</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true"></a><span class="co">#&gt; Loading required package: lattice</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true"></a>mirt_model &lt;-<span class="st"> </span><span class="kw">mirt</span>(<span class="kw">as.data.frame</span>(resp), <span class="dt">model =</span> <span class="dv">1</span>, <span class="dt">verbose =</span> <span class="ot">FALSE</span>)</span></code></pre></div>
+<p>We now apply the analytical score-based DIF test:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true"></a>sc_DIF &lt;-<span class="st"> </span><span class="kw">mstDIF</span>(mirt_model, <span class="dt">DIF_covariate =</span> <span class="kw">factor</span>(group_categ), <span class="dt">method =</span> <span class="st">&quot;analytical&quot;</span>)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true"></a>sc_DIF</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true"></a><span class="co">#&gt;     Differential Item Functioning (DIF) Detection Test </span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true"></a><span class="co">#&gt;      Method:      Assymptotic score-based DIF test </span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true"></a><span class="co">#&gt;      Test:        Lagrange Multiplier Test for Unordered Groups </span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true"></a><span class="co">#&gt;      DIF covariate:   factor(group_categ) </span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true"></a><span class="co">#&gt;      Data:        NULL </span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true"></a><span class="co">#&gt;      Items:       35 </span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true"></a><span class="co">#&gt;      Persons:     1000</span></span></code></pre></div>
+<p>As with the other tests, printing the object returns information on the test and the underlying dataset. Since we applied the test to a mirt object, the Data are given as NULL. The test statistic depends on the type of covariate that is used in the DIF test. In the case of a discrete, unordered person covariate, the used test statistic leads to a Lagrange Multiplier test for unordered groups. As with the other tests, we get p-values via the summary command:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true"></a><span class="kw">summary</span>(sc_DIF)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true"></a><span class="co">#&gt;                stat     p_value    N</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true"></a><span class="co">#&gt; Item_33 9.906090082 0.007061872  450</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true"></a><span class="co">#&gt; Item_8  9.896468123 0.007095929  576</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true"></a><span class="co">#&gt; Item_30 9.032859053 0.010927972  450</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true"></a><span class="co">#&gt; Item_32 6.992653625 0.030308508  450</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true"></a><span class="co">#&gt; Item_5  6.275120280 0.043388531 1000</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true"></a><span class="co">#&gt; Item_7  5.965298885 0.050658439 1000</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true"></a><span class="co">#&gt; Item_21 5.847563724 0.053730103  424</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true"></a><span class="co">#&gt; Item_24 4.909636758 0.085878791  550</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true"></a><span class="co">#&gt; Item_16 4.514169336 0.104655145  424</span></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true"></a><span class="co">#&gt; Item_25 4.003240644 0.135116174  550</span></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true"></a><span class="co">#&gt; Item_28 3.054264732 0.217157504  550</span></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true"></a><span class="co">#&gt; Item_1  2.858982161 0.239430742 1000</span></span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true"></a><span class="co">#&gt; Item_3  2.506000875 0.285646446 1000</span></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true"></a><span class="co">#&gt; Item_27 2.487716089 0.288269912  550</span></span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true"></a><span class="co">#&gt; Item_14 2.075146170 0.354313528  576</span></span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true"></a><span class="co">#&gt; Item_23 1.964683191 0.374433300  550</span></span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true"></a><span class="co">#&gt; Item_15 1.091405215 0.579434525  424</span></span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true"></a><span class="co">#&gt; Item_17 1.056119576 0.589748097  424</span></span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true"></a><span class="co">#&gt; Item_19 0.897735949 0.638350372  424</span></span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true"></a><span class="co">#&gt; Item_6  0.897261524 0.638501814 1000</span></span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true"></a><span class="co">#&gt; Item_4  0.854106018 0.652428967 1000</span></span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true"></a><span class="co">#&gt; Item_10 0.822730948 0.662744671  576</span></span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true"></a><span class="co">#&gt; Item_13 0.806095883 0.668280060  576</span></span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true"></a><span class="co">#&gt; Item_9  0.743360294 0.689574770  576</span></span>
+<span id="cb11-27"><a href="#cb11-27" aria-hidden="true"></a><span class="co">#&gt; Item_35 0.741449239 0.690233992  450</span></span>
+<span id="cb11-28"><a href="#cb11-28" aria-hidden="true"></a><span class="co">#&gt; Item_2  0.674499242 0.713730655 1000</span></span>
+<span id="cb11-29"><a href="#cb11-29" aria-hidden="true"></a><span class="co">#&gt; Item_18 0.600214048 0.740738940  424</span></span>
+<span id="cb11-30"><a href="#cb11-30" aria-hidden="true"></a><span class="co">#&gt; Item_29 0.582602393 0.747290563  450</span></span>
+<span id="cb11-31"><a href="#cb11-31" aria-hidden="true"></a><span class="co">#&gt; Item_22 0.571962850 0.751276571  550</span></span>
+<span id="cb11-32"><a href="#cb11-32" aria-hidden="true"></a><span class="co">#&gt; Item_12 0.513515239 0.773555686  576</span></span>
+<span id="cb11-33"><a href="#cb11-33" aria-hidden="true"></a><span class="co">#&gt; Item_31 0.414089485 0.812983274  450</span></span>
+<span id="cb11-34"><a href="#cb11-34" aria-hidden="true"></a><span class="co">#&gt; Item_34 0.337143285 0.844870733  450</span></span>
+<span id="cb11-35"><a href="#cb11-35" aria-hidden="true"></a><span class="co">#&gt; Item_20 0.283572933 0.867806542  424</span></span>
+<span id="cb11-36"><a href="#cb11-36" aria-hidden="true"></a><span class="co">#&gt; Item_26 0.255243514 0.880186240  550</span></span>
+<span id="cb11-37"><a href="#cb11-37" aria-hidden="true"></a><span class="co">#&gt; Item_11 0.009199239 0.995410943  576</span></span></code></pre></div>
+<p>Similar to the logistic regression test, we obtain p-values below 0.05 for the five items 5, 8, 30, 32 and 33. To prevent an increased rate of false positive results, we could again a) correct for multiple testing or b) define hypotheses which items we want to test for DIF before we carry out the tests. From a technical perspective, these analytical DIF tests assume that all other items are DIF free. It is possible to explicitly define a set of anchor item to weaken this assumption, but this goes beyond the scope of this vignette.</p>
+<p>In contrast to the logistic regression and mstSIB DIF test, score-based tests also allow to test continuous and ordinal person covariates for DIF effects. We will demonstrate this feature with the group_cont covariate:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true"></a>sc_DIF_<span class="dv">2</span> &lt;-<span class="st"> </span><span class="kw">mstDIF</span>(mirt_model, <span class="dt">DIF_covariate =</span> group_cont, <span class="dt">method =</span> <span class="st">&quot;analytical&quot;</span>)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true"></a>sc_DIF_<span class="dv">2</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true"></a><span class="co">#&gt;     Differential Item Functioning (DIF) Detection Test </span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true"></a><span class="co">#&gt;      Method:      Assymptotic score-based DIF test </span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true"></a><span class="co">#&gt;      Test:        Double Maximum Test </span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true"></a><span class="co">#&gt;      DIF covariate:   group_cont </span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true"></a><span class="co">#&gt;      Data:        NULL </span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true"></a><span class="co">#&gt;      Items:       35 </span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true"></a><span class="co">#&gt;      Persons:     1000</span></span></code></pre></div>
+<p>As usual, we can investigate the results for the individual items with:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true"></a><span class="kw">summary</span>(sc_DIF_<span class="dv">2</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true"></a><span class="co">#&gt;              stat    p_value    N</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true"></a><span class="co">#&gt; Item_5  1.3659237 0.09353094 1000</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true"></a><span class="co">#&gt; Item_2  1.3287680 0.11364405 1000</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true"></a><span class="co">#&gt; Item_12 1.2791132 0.14592279  576</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true"></a><span class="co">#&gt; Item_18 1.2504890 0.16762084  424</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true"></a><span class="co">#&gt; Item_7  1.1718791 0.24006446 1000</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true"></a><span class="co">#&gt; Item_32 1.1674586 0.24472636  450</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true"></a><span class="co">#&gt; Item_21 1.0864634 0.34151641  424</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true"></a><span class="co">#&gt; Item_35 1.0344161 0.41465048  450</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true"></a><span class="co">#&gt; Item_8  1.0124496 0.44779182  576</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true"></a><span class="co">#&gt; Item_23 1.0101888 0.45127109  550</span></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true"></a><span class="co">#&gt; Item_31 1.0066371 0.45676157  450</span></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true"></a><span class="co">#&gt; Item_3  0.9674889 0.51904522 1000</span></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true"></a><span class="co">#&gt; Item_9  0.9667843 0.52019204  576</span></span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true"></a><span class="co">#&gt; Item_11 0.9454645 0.55522588  576</span></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true"></a><span class="co">#&gt; Item_10 0.9383952 0.56696119  576</span></span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true"></a><span class="co">#&gt; Item_26 0.9248651 0.58953776  550</span></span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true"></a><span class="co">#&gt; Item_14 0.9213109 0.59548694  576</span></span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true"></a><span class="co">#&gt; Item_27 0.9179728 0.60107926  550</span></span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true"></a><span class="co">#&gt; Item_24 0.9025400 0.62696387  550</span></span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true"></a><span class="co">#&gt; Item_17 0.8997145 0.63170271  424</span></span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true"></a><span class="co">#&gt; Item_20 0.8818305 0.66162553  424</span></span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true"></a><span class="co">#&gt; Item_1  0.8493214 0.71521842 1000</span></span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true"></a><span class="co">#&gt; Item_30 0.8349971 0.73825373  450</span></span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true"></a><span class="co">#&gt; Item_29 0.8286536 0.74830002  450</span></span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true"></a><span class="co">#&gt; Item_33 0.8172372 0.76610118  450</span></span>
+<span id="cb13-28"><a href="#cb13-28" aria-hidden="true"></a><span class="co">#&gt; Item_28 0.7851220 0.81383178  550</span></span>
+<span id="cb13-29"><a href="#cb13-29" aria-hidden="true"></a><span class="co">#&gt; Item_34 0.7831228 0.81667025  450</span></span>
+<span id="cb13-30"><a href="#cb13-30" aria-hidden="true"></a><span class="co">#&gt; Item_16 0.7775574 0.82448038  424</span></span>
+<span id="cb13-31"><a href="#cb13-31" aria-hidden="true"></a><span class="co">#&gt; Item_19 0.7612028 0.84660497  424</span></span>
+<span id="cb13-32"><a href="#cb13-32" aria-hidden="true"></a><span class="co">#&gt; Item_15 0.7529646 0.85725090  424</span></span>
+<span id="cb13-33"><a href="#cb13-33" aria-hidden="true"></a><span class="co">#&gt; Item_6  0.7415213 0.87144470 1000</span></span>
+<span id="cb13-34"><a href="#cb13-34" aria-hidden="true"></a><span class="co">#&gt; Item_13 0.7336175 0.88082673  576</span></span>
+<span id="cb13-35"><a href="#cb13-35" aria-hidden="true"></a><span class="co">#&gt; Item_25 0.7150150 0.90147702  550</span></span>
+<span id="cb13-36"><a href="#cb13-36" aria-hidden="true"></a><span class="co">#&gt; Item_22 0.7047585 0.91196892  550</span></span>
+<span id="cb13-37"><a href="#cb13-37" aria-hidden="true"></a><span class="co">#&gt; Item_4  0.6031870 0.98040977 1000</span></span></code></pre></div>
+<p>As can be seen, there are no significant DIF effects.</p>
+</div>
+<div id="permutation-and-bootstrap-dif-tests" class="section level3">
+<h3>Permutation and Bootstrap DIF tests</h3>
+<p>Finally, we apply permutation and bootstrap DIF tests. In contrast to the other DIF tests presented in this vignette, these tests make use of the item parameters used during the presentation of the adaptive tests. Technically, these tests aim at testing the hypothesis that the true item parameters are invariant and correspond to the values used in the presentation of the adaptive test. These item parameters are stored in the it matrix. We start our application of these tests by explicitly storing the discrimination and difficulty parameters in separate vectors:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true"></a>discr &lt;-<span class="st"> </span>it[,<span class="dv">1</span>]</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true"></a>diff &lt;-<span class="st"> </span>it[,<span class="dv">2</span>]</span></code></pre></div>
+<p>We can now apply the bootstrap DIF test by the following command:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true"></a>bootstrap_DIF &lt;-<span class="st"> </span><span class="kw">mstDIF</span>(<span class="dt">resp =</span> resp, <span class="dt">DIF_covariate =</span> group_categ, <span class="dt">method =</span> <span class="st">&quot;bootstrap&quot;</span>,</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true"></a>                <span class="dt">a =</span> discr, <span class="dt">b =</span> diff, <span class="dt">decorrelate =</span> F)</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true"></a><span class="co">#&gt; Estimating:  4pl model ... </span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true"></a><span class="co">#&gt; type = wle </span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true"></a><span class="co">#&gt; Estimation finished!</span></span></code></pre></div>
+<p>After starting this command, the person parameters are calculated again using the PP package. We get notified that the estimation was finished. Printing the resulting object again gives details on the underlying data and test:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true"></a>bootstrap_DIF</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true"></a><span class="co">#&gt;     Differential Item Functioning (DIF) Detection Test </span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true"></a><span class="co">#&gt;      Method:      Bootstrap score-based DIF test with 1000 samples </span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true"></a><span class="co">#&gt;      Test:        Double Maximum Test </span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true"></a><span class="co">#&gt;      DIF covariate:   group_categ </span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true"></a><span class="co">#&gt;      Data:        resp </span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true"></a><span class="co">#&gt;      Items:       35 </span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true"></a><span class="co">#&gt;      Persons:     1000</span></span></code></pre></div>
+<p>Using the summary command, we get the p-values:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true"></a><span class="kw">summary</span>(bootstrap_DIF)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true"></a><span class="co">#&gt;             stat p_value    N</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true"></a><span class="co">#&gt; Item_8  41.43535   0.010  576</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true"></a><span class="co">#&gt; Item_33 35.32980   0.012  450</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true"></a><span class="co">#&gt; Item_30 31.35700   0.032  450</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true"></a><span class="co">#&gt; Item_32 30.50668   0.039  450</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true"></a><span class="co">#&gt; Item_21 28.94987   0.053  424</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true"></a><span class="co">#&gt; Item_5  43.40601   0.094 1000</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true"></a><span class="co">#&gt; Item_16 27.69800   0.102  424</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true"></a><span class="co">#&gt; Item_25 28.84286   0.117  550</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true"></a><span class="co">#&gt; Item_24 28.25936   0.161  550</span></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true"></a><span class="co">#&gt; Item_22 27.19333   0.171  550</span></span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true"></a><span class="co">#&gt; Item_7  37.26782   0.210 1000</span></span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true"></a><span class="co">#&gt; Item_9  27.92269   0.217  576</span></span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true"></a><span class="co">#&gt; Item_29 23.71674   0.242  450</span></span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true"></a><span class="co">#&gt; Item_20 22.45761   0.256  424</span></span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true"></a><span class="co">#&gt; Item_26 25.50687   0.339  550</span></span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true"></a><span class="co">#&gt; Item_1  31.06844   0.435 1000</span></span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true"></a><span class="co">#&gt; Item_28 22.58680   0.454  550</span></span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true"></a><span class="co">#&gt; Item_23 22.57854   0.476  550</span></span>
+<span id="cb17-21"><a href="#cb17-21" aria-hidden="true"></a><span class="co">#&gt; Item_14 23.01867   0.489  576</span></span>
+<span id="cb17-22"><a href="#cb17-22" aria-hidden="true"></a><span class="co">#&gt; Item_11 21.29707   0.508  576</span></span>
+<span id="cb17-23"><a href="#cb17-23" aria-hidden="true"></a><span class="co">#&gt; Item_15 18.65121   0.552  424</span></span>
+<span id="cb17-24"><a href="#cb17-24" aria-hidden="true"></a><span class="co">#&gt; Item_3  28.14860   0.573 1000</span></span>
+<span id="cb17-25"><a href="#cb17-25" aria-hidden="true"></a><span class="co">#&gt; Item_27 19.50961   0.607  550</span></span>
+<span id="cb17-26"><a href="#cb17-26" aria-hidden="true"></a><span class="co">#&gt; Item_19 16.99457   0.661  424</span></span>
+<span id="cb17-27"><a href="#cb17-27" aria-hidden="true"></a><span class="co">#&gt; Item_31 16.70285   0.671  450</span></span>
+<span id="cb17-28"><a href="#cb17-28" aria-hidden="true"></a><span class="co">#&gt; Item_6  25.41009   0.722 1000</span></span>
+<span id="cb17-29"><a href="#cb17-29" aria-hidden="true"></a><span class="co">#&gt; Item_35 16.22799   0.757  450</span></span>
+<span id="cb17-30"><a href="#cb17-30" aria-hidden="true"></a><span class="co">#&gt; Item_10 16.43764   0.852  576</span></span>
+<span id="cb17-31"><a href="#cb17-31" aria-hidden="true"></a><span class="co">#&gt; Item_18 13.13709   0.891  424</span></span>
+<span id="cb17-32"><a href="#cb17-32" aria-hidden="true"></a><span class="co">#&gt; Item_13 15.50530   0.904  576</span></span>
+<span id="cb17-33"><a href="#cb17-33" aria-hidden="true"></a><span class="co">#&gt; Item_12 16.06358   0.922  576</span></span>
+<span id="cb17-34"><a href="#cb17-34" aria-hidden="true"></a><span class="co">#&gt; Item_17 13.01244   0.929  424</span></span>
+<span id="cb17-35"><a href="#cb17-35" aria-hidden="true"></a><span class="co">#&gt; Item_2  20.48589   0.960 1000</span></span>
+<span id="cb17-36"><a href="#cb17-36" aria-hidden="true"></a><span class="co">#&gt; Item_34 12.05401   0.966  450</span></span>
+<span id="cb17-37"><a href="#cb17-37" aria-hidden="true"></a><span class="co">#&gt; Item_4  15.74184   0.995 1000</span></span></code></pre></div>
+<p>We see that items 8, 30, 32 and 33 show p-values below 0.0, similar to the analytical score-based test. As with the other tests, we could either correct for multiple testing or define hypotheses beforehand to prevent an increased rate of false positive results. As was the case with the analytical score-based tests, we can also test continuous and ordinal person covariates for DIF. We demonstrate this type of analysis with the group_cont covariate:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true"></a>bootstrap_DIF_<span class="dv">2</span> &lt;-<span class="st"> </span><span class="kw">mstDIF</span>(<span class="dt">resp =</span> resp, <span class="dt">DIF_covariate =</span> group_cont, <span class="dt">method =</span> <span class="st">&quot;bootstrap&quot;</span>,</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true"></a>                <span class="dt">a =</span> discr, <span class="dt">b =</span> diff, <span class="dt">decorrelate =</span> F)</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true"></a><span class="co">#&gt; Estimating:  4pl model ... </span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true"></a><span class="co">#&gt; type = wle </span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true"></a><span class="co">#&gt; Estimation finished!</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true"></a>bootstrap_DIF_<span class="dv">2</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true"></a><span class="co">#&gt;     Differential Item Functioning (DIF) Detection Test </span></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true"></a><span class="co">#&gt;      Method:      Bootstrap score-based DIF test with 1000 samples </span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true"></a><span class="co">#&gt;      Test:        Double Maximum Test </span></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true"></a><span class="co">#&gt;      DIF covariate:   group_cont </span></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true"></a><span class="co">#&gt;      Data:        resp </span></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true"></a><span class="co">#&gt;      Items:       35 </span></span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true"></a><span class="co">#&gt;      Persons:     1000</span></span></code></pre></div>
+<p>The results of this analysis are:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true"></a><span class="kw">summary</span>(bootstrap_DIF_<span class="dv">2</span>)</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true"></a><span class="co">#&gt;             stat p_value    N</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true"></a><span class="co">#&gt; Item_18 34.00477   0.009  424</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true"></a><span class="co">#&gt; Item_5  47.12704   0.045 1000</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true"></a><span class="co">#&gt; Item_2  44.09327   0.066 1000</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true"></a><span class="co">#&gt; Item_35 28.95484   0.075  450</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true"></a><span class="co">#&gt; Item_32 25.54950   0.124  450</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true"></a><span class="co">#&gt; Item_7  39.03102   0.146 1000</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true"></a><span class="co">#&gt; Item_12 26.29353   0.307  576</span></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true"></a><span class="co">#&gt; Item_20 21.53959   0.310  424</span></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true"></a><span class="co">#&gt; Item_23 25.68833   0.317  550</span></span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true"></a><span class="co">#&gt; Item_16 21.58565   0.348  424</span></span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true"></a><span class="co">#&gt; Item_26 24.04213   0.394  550</span></span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true"></a><span class="co">#&gt; Item_10 23.00194   0.401  576</span></span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true"></a><span class="co">#&gt; Item_1  31.87110   0.404 1000</span></span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true"></a><span class="co">#&gt; Item_27 22.10265   0.436  550</span></span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true"></a><span class="co">#&gt; Item_3  29.74656   0.500 1000</span></span>
+<span id="cb19-18"><a href="#cb19-18" aria-hidden="true"></a><span class="co">#&gt; Item_9  22.30023   0.551  576</span></span>
+<span id="cb19-19"><a href="#cb19-19" aria-hidden="true"></a><span class="co">#&gt; Item_30 19.56794   0.555  450</span></span>
+<span id="cb19-20"><a href="#cb19-20" aria-hidden="true"></a><span class="co">#&gt; Item_31 18.43406   0.556  450</span></span>
+<span id="cb19-21"><a href="#cb19-21" aria-hidden="true"></a><span class="co">#&gt; Item_14 21.12367   0.630  576</span></span>
+<span id="cb19-22"><a href="#cb19-22" aria-hidden="true"></a><span class="co">#&gt; Item_21 17.53189   0.634  424</span></span>
+<span id="cb19-23"><a href="#cb19-23" aria-hidden="true"></a><span class="co">#&gt; Item_29 18.01397   0.646  450</span></span>
+<span id="cb19-24"><a href="#cb19-24" aria-hidden="true"></a><span class="co">#&gt; Item_33 17.51145   0.666  450</span></span>
+<span id="cb19-25"><a href="#cb19-25" aria-hidden="true"></a><span class="co">#&gt; Item_24 18.52007   0.669  550</span></span>
+<span id="cb19-26"><a href="#cb19-26" aria-hidden="true"></a><span class="co">#&gt; Item_11 18.35649   0.713  576</span></span>
+<span id="cb19-27"><a href="#cb19-27" aria-hidden="true"></a><span class="co">#&gt; Item_17 15.68125   0.751  424</span></span>
+<span id="cb19-28"><a href="#cb19-28" aria-hidden="true"></a><span class="co">#&gt; Item_34 16.06359   0.753  450</span></span>
+<span id="cb19-29"><a href="#cb19-29" aria-hidden="true"></a><span class="co">#&gt; Item_13 17.69414   0.766  576</span></span>
+<span id="cb19-30"><a href="#cb19-30" aria-hidden="true"></a><span class="co">#&gt; Item_19 15.93857   0.769  424</span></span>
+<span id="cb19-31"><a href="#cb19-31" aria-hidden="true"></a><span class="co">#&gt; Item_25 16.05803   0.799  550</span></span>
+<span id="cb19-32"><a href="#cb19-32" aria-hidden="true"></a><span class="co">#&gt; Item_8  18.00935   0.800  576</span></span>
+<span id="cb19-33"><a href="#cb19-33" aria-hidden="true"></a><span class="co">#&gt; Item_6  24.09979   0.805 1000</span></span>
+<span id="cb19-34"><a href="#cb19-34" aria-hidden="true"></a><span class="co">#&gt; Item_15 15.36422   0.809  424</span></span>
+<span id="cb19-35"><a href="#cb19-35" aria-hidden="true"></a><span class="co">#&gt; Item_28 17.04354   0.850  550</span></span>
+<span id="cb19-36"><a href="#cb19-36" aria-hidden="true"></a><span class="co">#&gt; Item_22 16.08331   0.881  550</span></span>
+<span id="cb19-37"><a href="#cb19-37" aria-hidden="true"></a><span class="co">#&gt; Item_4  16.80331   0.986 1000</span></span></code></pre></div>
+<p>We find significant DIF effects for items 5 and 18.</p>
+<p>The permutation based DIF test works analogously. We therefore just demonstrate the commands and their output:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true"></a>permutation_DIF &lt;-<span class="st"> </span><span class="kw">mstDIF</span>(<span class="dt">resp =</span> resp, <span class="dt">DIF_covariate =</span> group_categ, <span class="dt">method =</span> <span class="st">&quot;permutation&quot;</span>,</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true"></a>                <span class="dt">a =</span> discr, <span class="dt">b =</span> diff, <span class="dt">decorrelate =</span> F)</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true"></a><span class="co">#&gt; Estimating:  4pl model ... </span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true"></a><span class="co">#&gt; type = wle </span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true"></a><span class="co">#&gt; Estimation finished!</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true"></a>permutation_DIF_<span class="dv">2</span> &lt;-<span class="st"> </span><span class="kw">mstDIF</span>(<span class="dt">resp =</span> resp, <span class="dt">DIF_covariate =</span> group_cont, <span class="dt">method =</span> <span class="st">&quot;permutation&quot;</span>,</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true"></a>                <span class="dt">a =</span> discr, <span class="dt">b =</span> diff, <span class="dt">decorrelate =</span> F)</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true"></a><span class="co">#&gt; Estimating:  4pl model ... </span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true"></a><span class="co">#&gt; type = wle </span></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true"></a><span class="co">#&gt; Estimation finished!</span></span></code></pre></div>
+<p>The results for the categorical covariate are:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true"></a><span class="kw">summary</span>(permutation_DIF)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true"></a><span class="co">#&gt;             stat p_value    N</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true"></a><span class="co">#&gt; Item_8  41.43535   0.003  576</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true"></a><span class="co">#&gt; Item_33 35.32980   0.013  450</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true"></a><span class="co">#&gt; Item_30 31.35700   0.037  450</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true"></a><span class="co">#&gt; Item_32 30.50668   0.037  450</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true"></a><span class="co">#&gt; Item_21 28.94987   0.069  424</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true"></a><span class="co">#&gt; Item_5  43.40601   0.075 1000</span></span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true"></a><span class="co">#&gt; Item_16 27.69800   0.094  424</span></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true"></a><span class="co">#&gt; Item_25 28.84286   0.117  550</span></span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true"></a><span class="co">#&gt; Item_24 28.25936   0.133  550</span></span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true"></a><span class="co">#&gt; Item_22 27.19333   0.202  550</span></span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true"></a><span class="co">#&gt; Item_7  37.26782   0.221 1000</span></span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true"></a><span class="co">#&gt; Item_29 23.71674   0.228  450</span></span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true"></a><span class="co">#&gt; Item_9  27.92269   0.240  576</span></span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true"></a><span class="co">#&gt; Item_20 22.45761   0.257  424</span></span>
+<span id="cb21-17"><a href="#cb21-17" aria-hidden="true"></a><span class="co">#&gt; Item_26 25.50687   0.298  550</span></span>
+<span id="cb21-18"><a href="#cb21-18" aria-hidden="true"></a><span class="co">#&gt; Item_1  31.06844   0.411 1000</span></span>
+<span id="cb21-19"><a href="#cb21-19" aria-hidden="true"></a><span class="co">#&gt; Item_23 22.57854   0.488  550</span></span>
+<span id="cb21-20"><a href="#cb21-20" aria-hidden="true"></a><span class="co">#&gt; Item_11 21.29707   0.489  576</span></span>
+<span id="cb21-21"><a href="#cb21-21" aria-hidden="true"></a><span class="co">#&gt; Item_14 23.01867   0.496  576</span></span>
+<span id="cb21-22"><a href="#cb21-22" aria-hidden="true"></a><span class="co">#&gt; Item_28 22.58680   0.507  550</span></span>
+<span id="cb21-23"><a href="#cb21-23" aria-hidden="true"></a><span class="co">#&gt; Item_15 18.65121   0.545  424</span></span>
+<span id="cb21-24"><a href="#cb21-24" aria-hidden="true"></a><span class="co">#&gt; Item_3  28.14860   0.597 1000</span></span>
+<span id="cb21-25"><a href="#cb21-25" aria-hidden="true"></a><span class="co">#&gt; Item_27 19.50961   0.602  550</span></span>
+<span id="cb21-26"><a href="#cb21-26" aria-hidden="true"></a><span class="co">#&gt; Item_19 16.99457   0.691  424</span></span>
+<span id="cb21-27"><a href="#cb21-27" aria-hidden="true"></a><span class="co">#&gt; Item_31 16.70285   0.697  450</span></span>
+<span id="cb21-28"><a href="#cb21-28" aria-hidden="true"></a><span class="co">#&gt; Item_6  25.41009   0.750 1000</span></span>
+<span id="cb21-29"><a href="#cb21-29" aria-hidden="true"></a><span class="co">#&gt; Item_35 16.22799   0.783  450</span></span>
+<span id="cb21-30"><a href="#cb21-30" aria-hidden="true"></a><span class="co">#&gt; Item_10 16.43764   0.829  576</span></span>
+<span id="cb21-31"><a href="#cb21-31" aria-hidden="true"></a><span class="co">#&gt; Item_18 13.13709   0.891  424</span></span>
+<span id="cb21-32"><a href="#cb21-32" aria-hidden="true"></a><span class="co">#&gt; Item_13 15.50530   0.900  576</span></span>
+<span id="cb21-33"><a href="#cb21-33" aria-hidden="true"></a><span class="co">#&gt; Item_12 16.06358   0.923  576</span></span>
+<span id="cb21-34"><a href="#cb21-34" aria-hidden="true"></a><span class="co">#&gt; Item_17 13.01244   0.924  424</span></span>
+<span id="cb21-35"><a href="#cb21-35" aria-hidden="true"></a><span class="co">#&gt; Item_2  20.48589   0.946 1000</span></span>
+<span id="cb21-36"><a href="#cb21-36" aria-hidden="true"></a><span class="co">#&gt; Item_34 12.05401   0.978  450</span></span>
+<span id="cb21-37"><a href="#cb21-37" aria-hidden="true"></a><span class="co">#&gt; Item_4  15.74184   0.992 1000</span></span></code></pre></div>
+<p>The results for the continuous covariate are:</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true"></a><span class="kw">summary</span>(permutation_DIF_<span class="dv">2</span>)</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true"></a><span class="co">#&gt;             stat p_value    N</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true"></a><span class="co">#&gt; Item_18 34.00477   0.008  424</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true"></a><span class="co">#&gt; Item_5  47.12704   0.048 1000</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true"></a><span class="co">#&gt; Item_35 28.95484   0.075  450</span></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true"></a><span class="co">#&gt; Item_2  44.09327   0.076 1000</span></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true"></a><span class="co">#&gt; Item_32 25.54950   0.125  450</span></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true"></a><span class="co">#&gt; Item_7  39.03102   0.153 1000</span></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true"></a><span class="co">#&gt; Item_12 26.29353   0.285  576</span></span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true"></a><span class="co">#&gt; Item_20 21.53959   0.291  424</span></span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true"></a><span class="co">#&gt; Item_23 25.68833   0.302  550</span></span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true"></a><span class="co">#&gt; Item_16 21.58565   0.343  424</span></span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true"></a><span class="co">#&gt; Item_26 24.04213   0.391  550</span></span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true"></a><span class="co">#&gt; Item_1  31.87110   0.401 1000</span></span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true"></a><span class="co">#&gt; Item_27 22.10265   0.442  550</span></span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true"></a><span class="co">#&gt; Item_10 23.00194   0.454  576</span></span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true"></a><span class="co">#&gt; Item_3  29.74656   0.495 1000</span></span>
+<span id="cb22-18"><a href="#cb22-18" aria-hidden="true"></a><span class="co">#&gt; Item_9  22.30023   0.540  576</span></span>
+<span id="cb22-19"><a href="#cb22-19" aria-hidden="true"></a><span class="co">#&gt; Item_30 19.56794   0.552  450</span></span>
+<span id="cb22-20"><a href="#cb22-20" aria-hidden="true"></a><span class="co">#&gt; Item_31 18.43406   0.560  450</span></span>
+<span id="cb22-21"><a href="#cb22-21" aria-hidden="true"></a><span class="co">#&gt; Item_29 18.01397   0.607  450</span></span>
+<span id="cb22-22"><a href="#cb22-22" aria-hidden="true"></a><span class="co">#&gt; Item_21 17.53189   0.634  424</span></span>
+<span id="cb22-23"><a href="#cb22-23" aria-hidden="true"></a><span class="co">#&gt; Item_14 21.12367   0.641  576</span></span>
+<span id="cb22-24"><a href="#cb22-24" aria-hidden="true"></a><span class="co">#&gt; Item_24 18.52007   0.687  550</span></span>
+<span id="cb22-25"><a href="#cb22-25" aria-hidden="true"></a><span class="co">#&gt; Item_33 17.51145   0.708  450</span></span>
+<span id="cb22-26"><a href="#cb22-26" aria-hidden="true"></a><span class="co">#&gt; Item_11 18.35649   0.719  576</span></span>
+<span id="cb22-27"><a href="#cb22-27" aria-hidden="true"></a><span class="co">#&gt; Item_8  18.00935   0.744  576</span></span>
+<span id="cb22-28"><a href="#cb22-28" aria-hidden="true"></a><span class="co">#&gt; Item_17 15.68125   0.759  424</span></span>
+<span id="cb22-29"><a href="#cb22-29" aria-hidden="true"></a><span class="co">#&gt; Item_34 16.06359   0.774  450</span></span>
+<span id="cb22-30"><a href="#cb22-30" aria-hidden="true"></a><span class="co">#&gt; Item_13 17.69414   0.775  576</span></span>
+<span id="cb22-31"><a href="#cb22-31" aria-hidden="true"></a><span class="co">#&gt; Item_15 15.36422   0.777  424</span></span>
+<span id="cb22-32"><a href="#cb22-32" aria-hidden="true"></a><span class="co">#&gt; Item_19 15.93857   0.783  424</span></span>
+<span id="cb22-33"><a href="#cb22-33" aria-hidden="true"></a><span class="co">#&gt; Item_6  24.09979   0.794 1000</span></span>
+<span id="cb22-34"><a href="#cb22-34" aria-hidden="true"></a><span class="co">#&gt; Item_25 16.05803   0.823  550</span></span>
+<span id="cb22-35"><a href="#cb22-35" aria-hidden="true"></a><span class="co">#&gt; Item_28 17.04354   0.850  550</span></span>
+<span id="cb22-36"><a href="#cb22-36" aria-hidden="true"></a><span class="co">#&gt; Item_22 16.08331   0.870  550</span></span>
+<span id="cb22-37"><a href="#cb22-37" aria-hidden="true"></a><span class="co">#&gt; Item_4  16.80331   0.990 1000</span></span></code></pre></div>
+<p>The results are very similar to those of the bootstrap DIF test.</p>
+</div>
+<div id="conclusion" class="section level3">
+<h3>Conclusion</h3>
+<p>In this vignette, we illustrated the use of the various tests included in the mstDIF package. The available tests include logistic regression, the mstSIB test, analytical score-based tests, bootstrap score-based tests and permutation score-based tests. For the three types of score-based tests, we further demonstrated their application to test a continuous covariate for DIF.</p>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
