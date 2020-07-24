@@ -1,6 +1,6 @@
-42bb07209087a091d8108293b91f2487 *DESCRIPTION
+8095809c5c1c237e062425eb811cd4c1 *DESCRIPTION
 f29c18ef762c8478e59779356afd9e73 *NAMESPACE
-b28fca85cebe452c811a92b7d03cfb99 *NEWS.md
+113592108cad228bc7c2e033d7f6d7de *NEWS.md
 500e7321869a8bb5786616077e90b9d6 *R/Utils.R
 6f839e63d93404acb57bb38163b09cb2 *R/Utils_perm_boot.R
 750508ae5dcf46838121f69435fa0c47 *R/bootstrap_sctest.R
@@ -17,7 +17,7 @@ be6b6d5f67cb73b5e730aabcc122ae8e *R/mstDIF-class_methods.R
 deeb9a8214bf4fdf12ca77637ba6b13c *data/toydata.rda
 8a0f9497907b5ae504e81063e8141d7f *inst/doc/mstDIF.R
 ee38cb9949be8eb6d0b2abc0622ee56b *inst/doc/mstDIF.Rmd
-1eebde2468def8564ab2705d1e93feca *inst/doc/mstDIF.html
+eb3b9b39bbcfe747f55e05b87a33d6e6 *inst/doc/mstDIF.html
 98bf8b4b126fe0a0974d4dd574693a5d *man/bootstrap_sctest.Rd
 e0bd136c703c96538726092892d97d60 *man/log_reg.Rd
 676925dd0592f7a410f61dd7a3e879a7 *man/mstDIF-Methods.Rd
@@ -28,5 +28,5 @@ e0bd136c703c96538726092892d97d60 *man/log_reg.Rd
 46a2086d74b3703c6473498feae64b7f *man/toydata.Rd
 164b717d719619907c2b5344f24d522c *tests/Rsctest.R
 a6e26cf88e2b3143d29becb7cc0a20bc *tests/testthat.R
-18aefb6c90cadac1c67e6d92cec88032 *tests/testthat/test1.R
+c4918938d84bda54f0f32817ce4dbbdb *tests/testthat/test1.R
 ee38cb9949be8eb6d0b2abc0622ee56b *vignettes/mstDIF.Rmd

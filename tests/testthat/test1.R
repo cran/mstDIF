@@ -64,13 +64,13 @@ test_that("mstSIB is working correctly", {
 ### Test 4: Score-based bootstrap tests (calculation with decorrelate = F is somewhat stabler)
 #test4 <- bootstrap_sctest(resp = resp, DIF_covariate = group, a = rep(1,times = i), b = beta, decorrelate = F)
 
-### Test 5: Analytical score-based test - needs a mirt object
-test_that("Analytical score-based tests are working correctly", {
-  test5 <- scDIFtest::scDIFtest(mirt_obj, DIF_covariate = group)
-  expect_equal(round(summary(test5)$p_value[1],3), 0.561)
-  expect_equal(round(summary(test5)$p_value[2],3), 0.599)
-  expect_equal(round(summary(test5)$p_value[3],3), 0.168)
-})
+# ### Test 5: Analytical score-based test - needs a mirt object
+# test_that("Analytical score-based tests are working correctly", {
+#   test5 <- scDIFtest::scDIFtest(mirt_obj, DIF_covariate = group)
+#   expect_equal(round(summary(test5)$p_value[1],3), 0.561)
+#   expect_equal(round(summary(test5)$p_value[2],3), 0.599)
+#   expect_equal(round(summary(test5)$p_value[3],3), 0.168)
+# })
 
 ### Test 6: mstDIF function with logreg option
 test_that("log_reg option of mstDIF is working correctly", {
