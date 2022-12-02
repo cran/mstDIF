@@ -3,11 +3,13 @@
 #' This function allows the application of various methods for the detection of differential item functioning
 #' in multistage tests. Currently five methods are implemented: 1. Logistic Regression, 2. mstSIB, 3. analytical
 #' score-base tests, 4. a score-based Bootstrap test, 5. a score-based permutation test. The required input
-#' differs with regard to the selected DIF test.
+#' depends on the chosen DIF test.
 #'
 #' Author: Rudolf Debelak and Dries Debeer
 #'
-#' @param resp,object A data frame or matrix containing the response matrix. Rows correspond to respondents, columns to items. Or an object of class SingleGroup-class or MultiGroup-class object as returned by mirt, or a dRm object as returned by the RM function in eRm.
+#' @param resp,object A data frame or matrix containing the response matrix. Rows correspond to 
+#' respondents, columns to items. Or an object of class SingleGroup-class or MultiGroup-class object
+#' as returned by mirt, or a dRm object as returned by the RM function in eRm.
 #' @param DIF_covariate A vector of ability estimates for each respondent.
 #' @param method A character value indicating the DIF test that should be used. Possible values are "logreg"
 #'  (Logistic regression), "mstsib" (mstSIB), "bootstrap" (score-based Bootstrap test), "permutation" (score-based)
@@ -29,7 +31,7 @@
 #'   \item{\code{DIF_test}}{A list with the DIF-test results.}
 #'   \item{\code{call}}{The function call.}
 #'   \item{\code{method_results}}{The complete output of the selected DIF test.
-#'   Differs depending on the selection.}
+#'   Details depend on the DIF test.}
 #' }
 #'
 #' @importFrom scDIFtest scDIFtest
@@ -198,7 +200,7 @@ mstDIF.AllModelClass <- function(object, DIF_covariate, method,
     summary <- summary(results)
     out <-  list(
       resp = resp,
-      method = "Assymptotic score-based DIF test",
+      method = "Asymptotic score-based DIF test",
       test = results$info$test_info$stat_name,
       DIF_covariate = as.character(deparse(call$DIF_covariate)),
       DIF_test =

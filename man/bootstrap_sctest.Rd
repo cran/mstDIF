@@ -69,7 +69,7 @@ decorrelated?}
 each person.}
 }
 \value{
-a list with four elements:
+A list with four elements:
 \describe{
   \item{\code{statistics}}{A matrix containing all the test statistics.}
   \item{\code{p}}{A matrix containing the obtained \emph{p}-values.}
@@ -79,14 +79,14 @@ a list with four elements:
 }
 }
 \description{
-\code{bootstrap_sctest} computes score test to detect DIF in multiple
+\code{bootstrap_sctest} computes a score test to detect DIF in multiple 
 item/parameters with respect to multiple person covariates (\code{DIF_covariate}).
-To obtain the p-values a resampling approach is applied. That is, given the
-(item and person) parameters, new data sets are sampled to create the
-distribution of the test statistic under the null-hypothesis. The
-functionality is limited to the 1-, 2-, and 3-parameter logistic models.
-Only DIF with respect to the \code{a} and \code{b} parameters are tested for,
-respectively the item discriminations and the item difficulties.
+A parametric bootstrap approach is applied to obtain p-values. That is, given the 
+(item and person) parameters, new data sets are sampled to create the distribution 
+of the test statistic under the null hypothesis. The functionality is limited to 
+the 1-, 2-, and 3-parameter logistic models.
+Only DIF with respect to the \code{a} and \code{b} parameters is tested for,
+which correspond to the item discrimination and the item difficulty parameters.
 }
 \details{
 Author: Dries Debeer

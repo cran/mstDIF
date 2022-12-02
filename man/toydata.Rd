@@ -8,8 +8,8 @@
 A list with 7 elements:
 \describe{
   \item{resp}{The response matrix, with rows corresponding to respondents and columns corresponding to items.}
-  \item{it}{A matrix of item parameters. The columns contain the discrimination, difficulty, pseudo-guessing and
-  inattention parameters of the 4PL models. The discrimination parameters were drawn from a N(1,0.2) distribution.
+  \item{it}{A matrix of item parameters. The columns contain the discrimination, difficulty, pseudo-guessing and 
+  inattention parameters of the 4PL model. The discrimination parameters were drawn from a N(1,0.2) distribution.
   The difficulty parameters were drawn from normal distributions. For module 1 (items 1-7), this distributions was N(0,1),
   for modules 2 and 4 (items 8-14 and 22-28) it was N(1,1) and for modules 3 and 5 (items 15-21 and 29-35)
   the distribution was N(-1,1).}

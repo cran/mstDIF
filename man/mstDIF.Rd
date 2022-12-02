@@ -22,7 +22,9 @@
 \method{mstDIF}{dRm}(object, DIF_covariate, method, theta = NULL, see = NULL, ...)
 }
 \arguments{
-\item{resp, object}{A data frame or matrix containing the response matrix. Rows correspond to respondents, columns to items. Or an object of class SingleGroup-class or MultiGroup-class object as returned by mirt, or a dRm object as returned by the RM function in eRm.}
+\item{resp, object}{A data frame or matrix containing the response matrix. Rows correspond to 
+respondents, columns to items. Or an object of class SingleGroup-class or MultiGroup-class object
+as returned by mirt, or a dRm object as returned by the RM function in eRm.}
 
 \item{DIF_covariate}{A vector of ability estimates for each respondent.}
 
@@ -51,27 +53,27 @@ An object of class \code{mstDIF}, which is a list with the following elements:
   \item{\code{DIF_test}}{A list with the DIF-test results.}
   \item{\code{call}}{The function call.}
   \item{\code{method_results}}{The complete output of the selected DIF test.
-  Differs depending on the selection.}
+  Details depend on the DIF test.}
 }
 }
 \description{
 This function allows the application of various methods for the detection of differential item functioning
 in multistage tests. Currently five methods are implemented: 1. Logistic Regression, 2. mstSIB, 3. analytical
 score-base tests, 4. a score-based Bootstrap test, 5. a score-based permutation test. The required input
-differs with regard to the selected DIF test.
+depends on the chosen DIF test.
 }
 \details{
 Author: Rudolf Debelak and Dries Debeer
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{default}: Default mstDIF method
+\item \code{mstDIF(default)}: Default mstDIF method
 
-\item \code{AllModelClass}: mstDIF method for mirt-objects
+\item \code{mstDIF(AllModelClass)}: mstDIF method for mirt-objects
 
-\item \code{dRm}: mstDIF method for dRm-objects
+\item \code{mstDIF(dRm)}: mstDIF method for dRm-objects
+
 }}
-
 \examples{
 
 ## load data

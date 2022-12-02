@@ -20,16 +20,16 @@
 #' each row corresponds to an item. The columns of this data frame correspond to the following entries:
 #' \describe{
 #'   \item{\code{N}}{The number of responses observed for this item.}
-#'   \item{\code{overall_chi_sq}}{The chi squared statistic of the likelihood ratio test comparing Model 2 and Model 0.}
-#'   \item{\code{overall_p_value}}{The p-values of the likelihood ratio test comparing Model 2 and Model 0 as
+#'   \item{\code{overall_chi_sq}}{The chi squared statistic of the likelihood ratio test comparing Model 1 and Model 3.}
+#'   \item{\code{overall_p_value}}{The p-values of the likelihood ratio test comparing Model 1 and Model 3 as
 #'   an indicator for the overall DIF effect.}
-#'   \item{\code{Delta_NagelkerkeR2}}{The difference of the Nagelkerke R squared values for Model 2 and Model 0.}
-#'   \item{\code{UDIF_chi_sq}}{The chi squared statistic of the likelihood ratio test comparing Model 1 and Model 0.}
-#'   \item{\code{UDIF_p_value}}{The p-values of the likelihood ratio test comparing Model 1 and Model 0.}
-#'   \item{\code{UDIF_Delta_NagelkerkeR2}}{The difference of the Nagelkerke R squared values for Model 1 and Model 0.}
-#'   \item{\code{CDIF_chi_sq}}{The chi squared statistic of the likelihood ratio test comparing Model 2 and Model 1.}
-#'   \item{\code{CDIF_p_value}}{The p-values of the likelihood ratio test comparing Model 2 and Model 1.}
-#'   \item{\code{CDIF_Delta_NagelkerkeR2}}{The difference of the Nagelkerke R squared values for Model 2 and Model 1.}
+#'   \item{\code{Delta_NagelkerkeR2}}{The difference of the Nagelkerke R squared values for Model 1 and Model 3.}
+#'   \item{\code{UDIF_chi_sq}}{The chi squared statistic of the likelihood ratio test comparing Model 1 and Model 2.}
+#'   \item{\code{UDIF_p_value}}{The p-values of the likelihood ratio test comparing Model 1 and Model 2.}
+#'   \item{\code{UDIF_Delta_NagelkerkeR2}}{The difference of the Nagelkerke R squared values for Model 1 and Model 2.}
+#'   \item{\code{CDIF_chi_sq}}{The chi squared statistic of the likelihood ratio test comparing Model 2 and Model 3.}
+#'   \item{\code{CDIF_p_value}}{The p-values of the likelihood ratio test comparing Model 2 and Model 3.}
+#'   \item{\code{CDIF_Delta_NagelkerkeR2}}{The difference of the Nagelkerke R squared values for Model 2 and Model 3.}
 #' }
 #'
 #' @examples 

@@ -1,0 +1,27 @@
+## R >= 2.8.0 passes package metadata to citation().
+if(!exists("meta") || is.null(meta)) meta <- packageDescription("mstDIF")
+year <- sub("-.*", "", meta$Date)
+note <- sprintf("R package version %s", meta$Version)
+
+bibentry(bibtype = "Manual",
+         title   = "{mstDIF}: A Collection of DIF Tests for Multistage Tests",
+         author  = c(person(given = "Rudolf", family = "Debelak"),
+					 person(given = "Dries", family = "Debeer")),
+         year    = year,
+         note    = note,
+         url     = "https://CRAN.R-project.org/package=mstDIF",
+	       header  = "To cite mstDIF in publications use"
+)
+
+bibentry(bibtype = "Article",
+         title   = "An Evaluation of DIF Tests in Multistage Tests for Continuous Covariates",
+         author  = c(person(given = "Rudolf", family = "Debelak"),
+					 person(given = "Dries", family = "Debeer")),
+         journal = "Psych",
+         year    = "2021",
+         volume  = "3",
+         number  = "4",
+         pages   = "618-638",
+         doi     = "10.3390/psych3040040",
+         header  = "To describe score-based tests for continuous variables in multistage tests, cite"
+)

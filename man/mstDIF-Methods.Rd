@@ -23,7 +23,7 @@
 \item{ordered}{logical: should the summary be ordered according to the obtained p-values (in ascending order)?}
 }
 \description{
-\code{print} and \code{summary}methods for objects of the
+\code{print} and \code{summary} methods for objects of the
 \code{mstDIF-class}, as returned by \code{\link{mstDIF}}. See details
 for more information about the methods.
 }
