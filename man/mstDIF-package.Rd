@@ -9,3 +9,19 @@ A Collection of Statistical Tests for the Detection of Differential
 Item Functioning (DIF) in Multistage Tests. Methods entail logistic regression,
 mstSIB, and various score-based tests.
 }
+\author{
+\strong{Maintainer}: Rudolf Debelak \email{rudolf.debelak@gmail.com}
+
+Authors:
+\itemize{
+  \item Dries Debeer \email{debeer.dries@gmail.com}
+}
+
+Other contributors:
+\itemize{
+  \item Sebastian Appelbaum [contributor]
+  \item Mark J. Gierl [contributor]
+}
+
+}
+\keyword{internal}

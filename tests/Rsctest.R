@@ -53,9 +53,11 @@ process
 library(strucchange)
 gefp <- gefp(x = scale(scores$scores, scale = FALSE), fit = NULL,
              scores = function(x) {x}, order.by = metric)
+gefp$process[-1,]
 
 # Is the cumsum score process the same?
-stopifnot(all((gefp$process[-1,] - process) < 1e-14))
+max(abs(gefp$process[-1,] - process))
+stopifnot(all(abs(gefp$process[-1,] - process) < 1e-8))
 
 # bootstrap vs sctest
 test_b <- bootstrap_sctest(resp = resp, a = a, b = b, nSample = 15,
@@ -89,12 +91,19 @@ sctest_o2 <- sctest(x = scale(scores$scores, scale = FALSE),
                    functional = "WDMo")
 
 # Are the test statistics the same
-stopifnot(all(test_b$statistic / rbind(sctest_m1$statistic,
+abs(test_b$statistic / rbind(sctest_m1$statistic,
+                         sctest_m2$statistic,
+                         sctest_m3$statistic,
+                         sctest_f$statistic,
+                         sctest_o$statistic,
+                         sctest_o2$statistic) - 1)
+
+stopifnot(all(abs(test_b$statistic / rbind(sctest_m1$statistic,
                                       sctest_m2$statistic,
                                       sctest_m3$statistic,
                                       sctest_f$statistic,
                                       sctest_o$statistic,
-                                      sctest_o2$statistic) - 1 < 1e-14))
+                                      sctest_o2$statistic) - 1) < 1e-8))
 
 # permutation vs bootstrap
 test_p <- permutation_sctest(resp = resp, a = a, b = b, nSample = 15,
@@ -108,6 +117,9 @@ test_p <- permutation_sctest(resp = resp, a = a, b = b, nSample = 15,
                              statistic = c("auto", "CvM", "maxLM", "auto", "auto", "WDMo"),
                              decorrelate = TRUE, theta = theta)
 test_p$p
+test_p$statistic
+
+test_b$statistic
 test_p$statistic
 
 # Are the test statistics the same

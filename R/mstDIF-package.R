@@ -4,7 +4,6 @@
 #' Item Functioning (DIF) in Multistage Tests. Methods entail logistic regression,
 #' mstSIB, and various score-based tests.
 #'
-#' @docType package
-#' @name mstDIF-package
-#'
-NULL
+#' @keywords internal
+"_PACKAGE"
+

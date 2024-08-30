@@ -1,3 +1,7 @@
+# mstDIF 0.1.8
+
+Adaptation of automated tests.
+
 # mstDIF 0.1.7
 
 Minor text changes, inclusion of a reference to a publication.

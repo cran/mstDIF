@@ -1,7 +1,7 @@
 Package: mstDIF
 Type: Package
 Title: A Collection of DIF Tests for Multistage Tests
-Version: 0.1.7
+Version: 0.1.8
 Authors@R: c(person(given = "Rudolf", family = "Debelak", role = c("aut", "cre"), email = "rudolf.debelak@gmail.com"),
              person(given = "Dries", family = "Debeer", role = c("aut"), email = "debeer.dries@gmail.com"),
              person(given = "Sebastian", family = "Appelbaum", role = "ctb"),
@@ -17,9 +17,9 @@ Description: A collection of statistical tests for the detection of differential
 License: GPL-2 | GPL-3
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.2.1
+RoxygenNote: 7.3.1
 NeedsCompilation: no
-Packaged: 2022-12-02 15:50:01 UTC; rdebelak-adm
+Packaged: 2024-08-30 09:57:01 UTC; rdebelak-adm
 VignetteBuilder: knitr
 Author: Rudolf Debelak [aut, cre],
   Dries Debeer [aut],
@@ -27,4 +27,4 @@ Author: Rudolf Debelak [aut, cre],
   Mark J. Gierl [ctb]
 Maintainer: Rudolf Debelak <rudolf.debelak@gmail.com>
 Repository: CRAN
-Date/Publication: 2022-12-02 16:10:02 UTC
+Date/Publication: 2024-08-30 11:10:03 UTC
